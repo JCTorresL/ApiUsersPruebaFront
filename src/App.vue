@@ -3,14 +3,26 @@ import { onMounted, ref, watch } from 'vue'
 import axios from 'axios'
 import Swal from 'sweetalert2'
 
+//*Pages
+import View from './pages/View.vue'
+import Form from './pages/Form.vue';
+
 const busqueda = ref('');
 const usersPagination = ref(Object);
 const paginate = ref(Object);
 
+//*Variables component View
 const openView = ref(false);
+const idView = ref(0);
+
+//*Variables component Edit
 const openEdit = ref(false);
+const idEdit = ref(0);
+
+//*Variable componente Create
 const openCreate = ref(false);
 
+//*Funciones de la paginacion
 onMounted(() => {
   pagination()
 })
@@ -20,12 +32,6 @@ const pagination = (current_page = 1, search = '') => {
     usersPagination.value = info.data.data.data
     paginate.value = info.data.data
   })
-}
-
-const viewUser = () => {
-
-  openView.value = true
-
 }
 
 const deleteUser = (id) => {
@@ -55,13 +61,32 @@ const deleteUser = (id) => {
 
 }
 
-const showModal = () => {
-  this.$refs['my-modal'].show()
-}
-
 watch(busqueda, (newValue, oldValue) => {
   pagination(1, newValue)
 });
+
+//*Funciones ventana modal View
+const showModalView = (id) => {
+  openView.value = true;
+  idView.value = id
+}
+
+const closeModalView = (close) => {
+  openView.value = close
+}
+
+//*Funciones ventana modal Edit
+const showModalEdit = (id) => {
+  openEdit.value = true;
+  idEdit.value = id
+}
+
+//*Funcion create or edit
+const closeModalEditOrCreate = (close) => {
+  openEdit.value = close
+  openCreate.value = close
+  pagination()
+}
 
 </script>
 
@@ -82,8 +107,8 @@ watch(busqueda, (newValue, oldValue) => {
       </div>
 
       <div class="justify-content-end mx-2">
-        <button class="btn btn-outline-light btn-md" title="crear">
-          <i class="fa-solid fa-plus"></i>
+        <button class="btn btn-outline-light btn-md" title="crear" @click="openCreate = true">
+          <i class=" fa-solid fa-plus"></i>
         </button>
       </div>
     </div>
@@ -107,10 +132,10 @@ watch(busqueda, (newValue, oldValue) => {
           <td>{{ user.correo ? user.correo : 'no registra' }}</td>
           <td>{{ user.telefono ? user.telefono : 'no registra' }}</td>
           <td>
-            <button type="button" class="btn btn-outline-info btn-sm" title="ver" @click="showModal">
+            <button type="button" class="btn btn-outline-info btn-sm" title="ver" @click="showModalView(user.id)">
               <i class="fa-solid fa-eye"></i>
             </button>&nbsp;
-            <button class="btn btn-outline-warning btn-sm" title="editar">
+            <button class="btn btn-outline-warning btn-sm" title="editar" @click="showModalEdit(user.id)">
               <i class="fa-solid fa-marker"></i>
             </button>&nbsp;
             <button class="btn btn-outline-danger btn-sm" title="eliminar" @click="deleteUser(user.id)">
@@ -138,6 +163,15 @@ watch(busqueda, (newValue, oldValue) => {
         </li>
       </ul>
     </nav>
+
+    <div v-show="openView">
+      <View :visible="openView" :title="'Usuario'" :id="idView" @close="closeModalView" />
+    </div>
+
+    <div v-show="openEdit || openCreate">
+      <Form :visible="openEdit || openCreate" title="Editar" :id="openCreate ? 0 : idEdit"
+        @close="closeModalEditOrCreate" />
+    </div>
 
   </div>
 </template>
